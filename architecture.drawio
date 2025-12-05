@@ -1,0 +1,274 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36" version="28.2.2">
+  <diagram id="rate-limiter-arch" name="Rate Limiter Architecture">
+    <mxGraphModel dx="860" dy="434" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="AI Inference Rate Limiter - System Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="500" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="section1-title" value="1. Request Flow (High Level)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="40" y="80" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="client" value="Client&#xa;Application" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="60" y="130" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="api-gateway" value="API Gateway&#xa;(Authentication)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="180" y="140" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rate-limiter-box" value="RATE LIMITER&#xa;/allow endpoint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="340" y="140" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="model-router" value="Model Router&#xa;(Load Balancer)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="520" y="140" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gpu-pool" value="GPU Pool&#xa;(Inference)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="680" y="140" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" parent="1" source="client" target="api-gateway" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" parent="1" source="api-gateway" target="rate-limiter-box" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#00AA00;" parent="1" source="rate-limiter-box" target="model-router" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3-label" value="allowed=true" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#00AA00;" parent="1" vertex="1">
+          <mxGeometry x="460" y="120" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" parent="1" source="model-router" target="gpu-pool" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rejected" value="429&#xa;Too Many&#xa;Requests" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" parent="1" vertex="1">
+          <mxGeometry x="360" y="230" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CC0000;dashed=1;" parent="1" source="rate-limiter-box" target="rejected" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-rejected-label" value="allowed=false" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#CC0000;" parent="1" vertex="1">
+          <mxGeometry x="440" y="220" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="section2-title" value="2. Sliding Window Log Algorithm" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="40" y="320" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="window-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="60" y="360" width="700" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="window-label" value="1 Hour Window (3600 seconds)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="300" y="365" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="old-ts-1" value="ts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;strokeStyle=dashed;" parent="1" vertex="1">
+          <mxGeometry x="80" y="410" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="old-ts-2" value="ts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;strokeStyle=dashed;" parent="1" vertex="1">
+          <mxGeometry x="120" y="410" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ts-1" value="ts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="200" y="410" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ts-2" value="ts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="260" y="410" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ts-3" value="ts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="320" y="410" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ts-4" value="ts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="400" y="410" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ts-5" value="ts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="500" y="410" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="new-ts" value="NEW" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="620" y="410" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="window-start" value="" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#CC0000;dashed=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="170" y="460" as="sourcePoint" />
+            <mxPoint x="170" y="390" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="window-start-label" value="window_start&#xa;(now - 1hr)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#CC0000;" parent="1" vertex="1">
+          <mxGeometry x="140" y="460" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="now-marker" value="" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#0000CC;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="680" y="460" as="sourcePoint" />
+            <mxPoint x="680" y="390" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="now-label" value="now" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#0000CC;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="665" y="460" width="30" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-old" value="Expired (removed)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;strokeStyle=dashed;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="80" y="500" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-valid" value="Valid (counted)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="200" y="500" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-new" value="New request" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="320" y="500" width="100" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="section3-title" value="3. Data Structure (Per User+Model)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="840" y="80" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kv-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="840" y="120" width="350" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="key-label" value="Key" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="860" y="130" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="key-value" value="ratelimit:{user_id}:{model_id}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Courier New;" parent="1" vertex="1">
+          <mxGeometry x="860" y="150" width="310" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="value-label" value="Value (Sorted List of Timestamps)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="860" y="190" width="250" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="value-content" value="[1701234567.123, 1701234568.456, 1701234569.789, ...]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Courier New;fontSize=11;" parent="1" vertex="1">
+          <mxGeometry x="860" y="210" width="310" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="memory-note" value="Memory: ~8 bytes per timestamp&#xa;Max 100 entries = ~800 bytes per key" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="860" y="250" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="section4-title" value="4. Distributed Architecture (Redis)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="840" y="320" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="api-1" value="Rate Limiter&#xa;Instance 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="860" y="370" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="api-2" value="Rate Limiter&#xa;Instance 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="860" y="430" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="api-3" value="Rate Limiter&#xa;Instance N" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="860" y="490" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-cluster" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="1040" y="360" width="180" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-title" value="Redis Cluster" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="1080" y="365" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-1" value="Shard 1&#xa;(ZSET)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="1060" y="395" width="70" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-2" value="Shard 2&#xa;(ZSET)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="1140" y="395" width="70" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-3" value="Shard 3&#xa;(ZSET)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="1060" y="450" width="70" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-4" value="Shard N&#xa;(ZSET)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="1140" y="450" width="70" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="lua-box" value="Lua Script (Atomic)&#xa;ZREMRANGEBYSCORE&#xa;ZCARD → check limit&#xa;ZADD → add timestamp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;fontSize=10;spacingLeft=5;" parent="1" vertex="1">
+          <mxGeometry x="1060" y="505" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="to-redis-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="api-1" target="redis-cluster" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1040" y="395" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="to-redis-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="api-2" target="redis-cluster" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1040" y="455" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="to-redis-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="api-3" target="redis-cluster" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1040" y="515" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sharding-note" value="Consistent Hashing:&#xa;shard = hash(user:model) % N" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontColor=#666666;fontFamily=Courier New;" parent="1" vertex="1">
+          <mxGeometry x="980" y="565" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="section5-title" value="5. allow() Algorithm Flow" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="40" y="560" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-start" value="allow(user_id, model_id)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="60" y="600" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-key" value="key = user_id:model_id" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="60" y="660" width="140" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-lock" value="Acquire lock(key)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="60" y="710" width="140" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-cleanup" value="Remove timestamps&#xa;&lt; (now - window)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="60" y="760" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-check" value="count &gt;= limit?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="65" y="820" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-false" value="return False" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="250" y="830" width="90" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-add" value="Add current timestamp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="60" y="900" width="140" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-true" value="return True" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="85" y="955" width="90" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f-arrow-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="flow-start" target="flow-key" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f-arrow-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="flow-key" target="flow-lock" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f-arrow-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="flow-lock" target="flow-cleanup" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f-arrow-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="flow-cleanup" target="flow-check" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f-arrow-5" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontColor=#CC0000;" parent="1" source="flow-check" target="flow-false" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f-arrow-6" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontColor=#00AA00;" parent="1" source="flow-check" target="flow-add" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f-arrow-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="flow-add" target="flow-true" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="section6-title" value="6. Tiered Rate Limits" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="420" y="560" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="tenant-table" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="420" y="600" width="180" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="tenant-header" value="Tenant Tier Limits" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="420" y="600" width="180" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="tenant-free" value="FREE: 100 req/hr" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" parent="1" vertex="1">
+          <mxGeometry x="420" y="630" width="180" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="tenant-pro" value="PRO: 1,000 req/hr" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" parent="1" vertex="1">
+          <mxGeometry x="420" y="660" width="180" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="tenant-ent" value="ENTERPRISE: 10,000 req/hr" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" parent="1" vertex="1">
+          <mxGeometry x="420" y="690" width="180" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="model-table" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="620" y="600" width="180" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="model-header" value="Model Tier Limits" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="620" y="600" width="180" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="model-heavy" value="HEAVY (GPT-4): 50 req/hr" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" parent="1" vertex="1">
+          <mxGeometry x="620" y="630" width="180" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="model-std" value="STANDARD: 200 req/hr" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" parent="1" vertex="1">
+          <mxGeometry x="620" y="660" width="180" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="model-light" value="LIGHT (Embed): 1,000 req/hr" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" parent="1" vertex="1">
+          <mxGeometry x="620" y="690" width="180" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="effective-note" value="Effective Limit = min(tenant_limit, model_limit)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="470" y="750" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="example-box" value="Example: PRO tier (1000) + GPT-4 (50) → limit = 50" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="450" y="785" width="320" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
