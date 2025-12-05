@@ -181,24 +181,38 @@ DELETE /usage/{user_id}/{model_id}
 
 ## Running the Service
 
-### Local Development (In-Memory)
+### Setup
 
 ```bash
 pip install -r requirements.txt
+cp .env.example .env  # Configure your settings
+```
+
+### Local Development (In-Memory)
+
+```bash
 cd src
 uvicorn api:app --reload --port 8000
 ```
 
 ### Production (Redis)
 
+Edit `.env` to enable Redis:
+```
+USE_REDIS=true
+REDIS_HOST=redis.example.com
+REDIS_PORT=6379
+```
+
+Then run:
 ```bash
-export USE_REDIS=true
-export REDIS_HOST=redis.example.com
-export REDIS_PORT=6379
+cd src
 uvicorn api:app --host 0.0.0.0 --port 8000
 ```
 
 ### Configuration
+
+Settings are loaded from `.env` file (see `.env.example`):
 
 | Environment Variable | Default | Description |
 |---------------------|---------|-------------|
