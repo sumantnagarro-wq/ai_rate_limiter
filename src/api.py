@@ -1,7 +1,10 @@
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+
+load_dotenv()
 
 from rate_limiter import SlidingWindowRateLimiter
 from redis_limiter import RedisRateLimiter
